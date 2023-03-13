@@ -2,7 +2,13 @@
 import telebot
 import requests
 import datetime
-import mainweather as weather
+
+from telebot import types
+
+import symbols as symb
+import answers as ans
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from random import random
 
 #Токен бота
 bot = telebot.TeleBot('6143676529:AAGMqzKk6wDObeCzMTjLxvoPBv2GLrWRYKQ')
@@ -26,6 +32,18 @@ command_list = \
     '\n'\
     'P.S: Чтобы не вводить команду на клавиатуре, просто нажмите на нее'
 
+#Словарь ответов на некоторые сообщения
+dictionaryAnswer={
+    "Привет бот: " :"Привет!",
+    "Привет Гринч" : "Привет",
+    "Как дела?" : "Нормально. Как у вас?",
+    "Как дела Гринч?" : "Хорошо :)",
+    "Что ты умеешь?" : "Я умею много чего, лучше посмотри список команд (/help)",
+    "Пока бот" : "Счастливо!",
+    "Пока" : "Пока :(",
+    "Пока Гринч" : "Пока"
+}
+
 
 registered_users: {int: str} = {}
 
@@ -42,7 +60,7 @@ def start_command(message):
 def start_command(message):
     bot.send_message(message.from_user.id, command_list)
 
-# Команда входа в чат
+# Команда регистрации в чате
 @bot.message_handler(commands=['register'])
 def register_command(message: telebot.types.Message):
     user_input = message.text.split()
@@ -112,6 +130,7 @@ def quit_command(message: telebot.types.Message):
         registered_users.pop(message.from_user.id)
         bot.send_message(message.from_user.id, 'Вы вышли из чата')
 
+
 # Команда погоды
 @bot.message_handler(commands=['weather'])
 def weather_command(message: telebot.types.Message):
@@ -164,8 +183,31 @@ def getWeather(message):
                   f'Продуктивного вам дня'
                   )
     except Exception as ex:
-        bot.send_message(message.from_user.id,'Проверьте правильность введенного города')
+        if(message.text[:1] == '/'):
+            bot.send_message(message.from_user.id, 'Возможно вы случайно ввели команду, если нет, то повторите ее еще раз')
+        else:
+          while message.text[:1] != '/':
+            msg = bot.send_message(message.from_user.id, 'Проверьте правильность введенного города и введите название города повторно')
+            bot.register_next_step_handler(msg, getWeather)
+            break
 
+
+#Выбор игры (крестик или нолик)
+
+@bot.message_handler(commands=['newgame'])
+def newgame_command(message: telebot.types.Message):
+    markup = telebot.types.InlineKeyboardMarkup()
+    markup.add(telebot.types.InlineKeyboardButton(text=symb.symbolX, callback_data='x'))
+    markup.add(telebot.types.InlineKeyboardButton(text=symb.symbol0, callback_data='o'))
+
+    if message.text == '/newgame':
+        msg = bot.send_message(message.chat.id, text='Выбери за кого будешь играть', reply_markup=markup)
+@bot.callback_query_handler(func=lambda call: True)
+def step(callback_query: telebot.types.CallbackQuery):
+    if callback_query.data == 'x':
+       msg= bot.send_message(callback_query.message.chat.id,'Отличный выбор!Давай начнем')
+    elif callback_query.data == 'o':
+        msg = bot.send_message(callback_query.message.chat.id, 'Хммм, лааадно, пусть будет по твоему')
 
 
 #Команда текущего времени
@@ -173,6 +215,7 @@ def getWeather(message):
 def time_command(message: telebot.types.Message):
     bot.send_message(message.from_user.id, "Текущее время в твоем городе : \n"
                                 f"---{datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}---")
+
 
 # Точка входа
 def main():
