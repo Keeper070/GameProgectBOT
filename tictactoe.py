@@ -14,8 +14,8 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 
 bot = telebot.TeleBot(main.bot)
 
-player=0
-ai=0
+
+players = []
 
 #Выбор игры (крестик или нолик)
 @bot.message_handler(commands=['newgame'])
@@ -30,7 +30,10 @@ def newgame_command(message: telebot.types.Message):
 @bot.callback_query_handler(func=lambda call: True)
 def step(callback_query: telebot.types.CallbackQuery):
     if callback_query.data == 'x':
-       msg= bot.send_message(callback_query.message.chat.id,'Отличный выбор!Давай начнем')
+       ai = symb.symbol0
+       player = symb.symbolX
+       chat(callback_query.message,ai,player)
+       # msg= bot.send_message(callback_query.message.from_user.id,'Отличный выбор!Давай начнем: {}'.format(a))
     elif callback_query.data == 'o':
         msg = bot.send_message(callback_query.message.chat.id, 'Хммм, лааадно, пусть будет по твоему')
 
@@ -47,34 +50,57 @@ def win(arr, who):
         return True
     return False
 
+bot_send=True
+def make_bot_true():
+    global bot_send
+    bot_send = True
 
-# #Оценка состояния
-# def score(board):
-#     if win(board,player):
-#         return -10
-#     elif win(board,ai):
-#         return 10
-#     else:
-#         return 0
+def make_bot_false():
+    global bot_send
+    bot_send = False
+ai=symb.symbol0
+player=symb.symbolX
+def check_win(board):
+    for i in range(3):
+        if board[i][1] == board[i][0] and board[i][1] == board[i][2] and board[i][1] != symb.symbolDef:
+            return True, board[i][0]
+    for i in range(3):
+        if board[1][i] == board[0][i] and board[1][i] == board[2][i] and board[1][i] !=  symb.symbolDef:
+            return True, board[1][i]
+    for i in range(2):
+        if board[0][0] == board[1][1] and board[1][1] !=  symb.symbolDef and board[1][1] == board[2][2]:
+            return True, board[0][0]
+        elif board[1][1] !=  symb.symbolDef and board[1][1] == board[0][2] and board[0][2] == board[2][0]:
+            return True, board[1][1]
+    if board[0][0] !=  symb.symbolDef and board[1][0] !=  symb.symbolDef and board[2][0] !=  symb.symbolDef and board[1][0] !=  symb.symbolDef and board[1][
+        1] !=  symb.symbolDef and board[1][2] !=  symb.symbolDef and board[2][0] !=  symb.symbolDef and board[2][1] !=  symb.symbolDef and board[2][2] !=  symb.symbolDef:
+        return None, None
+    return False, False
 
- def init_board(self):
-     self.board = ['  '] * 10
 
 
-def get_board(self):
-     return self.board
 
-def get_drawn_board(self, board):
-        row_0 = '✎\n'
-        row_1 = self.board[7] + '|' + self.board[8] + '|' + \
-            self.board[9] + '\n'
-        row_2 = '--+--+--\n'
-        row_3 = self.board[4] + '|' + self.board[5] + '|' + \
-            self.board[6] + '\n'
-        row_4 = '--+--+--\n'
-        row_5 = self.board[1] + '|' + self.board[2] + '|' + \
-            self.board[3] + '\n'
+def plus_hod():
+    global hod
+    hod += 1
 
-        drawn_board = row_0 + row_1 + row_2 + row_3 + row_4 + row_5
+def chat(message,ai,player):
+    board = [[symb.symbolDef] * 3 for i in range(3)]
+    hod = 0
+    keyboard = types.InlineKeyboardMarkup(row_width=3)
+    b1 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=1)
+    b2 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=2)
+    b3 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=3)
+    b4 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=4)
+    b5 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=5)
+    b6 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=6)
+    b7 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=7)
+    b8 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=8)
+    b9 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=9)
+    keyboard.add(b1, b2, b3, b4, b5, b6, b7, b8, b9)
+    if bot_send:
+        make_bot_false()
+        us1_mes = bot.send_message(message.chat.id, 'Играйте! Ты - крестик! Ты  играешь против бота Гринч', reply_markup=keyboard)
+        # bot.register_next_step_handler(us1_mes,newgame_command)
 
-        return drawn_board
+
