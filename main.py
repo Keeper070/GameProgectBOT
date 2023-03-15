@@ -8,7 +8,7 @@ from telebot import types
 import symbols as symb
 import answers as ans
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from random import random
+import random
 
 #Токен бота
 bot = telebot.TeleBot('6143676529:AAGMqzKk6wDObeCzMTjLxvoPBv2GLrWRYKQ')
@@ -191,12 +191,7 @@ def getWeather(message):
             bot.register_next_step_handler(msg, getWeather)
             break
 
-
-
-
-
-
-
+#Выбор игры (крестик или нолик)
 
 check=False
 
@@ -209,188 +204,105 @@ def newgame_command(message: telebot.types.Message):
     markup.add(telebot.types.InlineKeyboardButton(text=symb.symbol0, callback_data='o'))
 
     if message.text == '/newgame':
-        msg = bot.send_message(message.chat.id, text='Выбери за кого будешь играть', reply_markup=markup)
-
-
-@bot.callback_query_handler(func=lambda call: True)
-def step(callback_query: telebot.types.CallbackQuery):
-    if callback_query.data == 'x':
-       ai = symb.symbol0
-       player = symb.symbolX
-       check=True
-       board_game(callback_query.message,ai,player,check)
-
-       # msg= bot.send_message(callback_query.message.from_user.id,'Отличный выбор!Давай начнем: {}'.format(a))
-    elif callback_query.data == 'o':
-        ai = symb.symbolX
-        player = symb.symbol0
-        check = False
-        board_game(callback_query.message, ai, player, check)
-
-
-
-bot_send=True
-
-
-def make_bot_false():
-    global bot_send
-    bot_send = False
+        bot.send_message(message.chat.id, text='Выбери за кого будешь играть', reply_markup=markup)
 
 def plus_hod():
+    global hod
     hod += 1
 
-ai=symb.symbol0
-player=symb.symbolX
-
-#Игровое поле
-def board_game(message,ai,player,check):
-    global board,hod
-    board = [[symb.symbolDef] * 3 for i in range(3)]
-    hod = 0
-    keyboard = types.InlineKeyboardMarkup(row_width=3)
-
-    if(check):
-        b1 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=1)
-    else:
-        b1 = types.InlineKeyboardButton(text=symb.symbolX, callback_data=1)
-
-    b2 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=2)
-    b3 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=3)
-    b4 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=4)
-    b5 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=5)
-    b6 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=6)
-    b7 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=7)
-    b8 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=8)
-    b9 = types.InlineKeyboardButton(text=symb.symbolDef, callback_data=9)
-    keyboard.add(b1, b2, b3, b4, b5, b6, b7, b8, b9)
-    if bot_send:
-        make_bot_false()
-        if(check):
-            mes = bot.send_message(message.chat.id, 'Отличный выбор!Давай, первый ход за тобой', reply_markup=keyboard)
-        else:
-            msg = bot.send_message(message.chat.id, 'Хммм, лааадно, пусть будет по твоему', reply_markup=keyboard)
-
 @bot.callback_query_handler(func=lambda call: True)
-def query_handler(call: telebot.types.CallbackQuery):
+def step(call: telebot.types.CallbackQuery):
+    if call.data == 'x':
+        bot.send_message(call.from_user.id,'Ваш ход', reply_markup=board())
     if call.data == '1':
-        call_data(0, 0, call.message)
+
+
+def board(end=False, draw=False, symbol='x'):
+
+    global b1, b2, b3, b4, b5, b6, b7, b8, b9,board
+    board = [['◻'] * 3 for i in range(3)]
+    hod = 0
+
+    if end:
+        keyboard = types.InlineKeyboardMarkup(row_width=3)
+        if draw:
+            txt = 'Конец! Ничья!'
+        else:
+            txt = f'Конец! Победил игрок , который играл за "{symbol[1]}"'
+        b1 = types.InlineKeyboardButton(text=txt, callback_data=102)
+        keyboard.add(b1)
+        return keyboard
+    if hod == 0:
+        keyboard = types.InlineKeyboardMarkup(row_width=3)
+        b1 = types.InlineKeyboardButton(text='◻', callback_data=1)
+        b2 = types.InlineKeyboardButton(text='◻', callback_data=2)
+        b3 = types.InlineKeyboardButton(text='◻', callback_data=3)
+        b4 = types.InlineKeyboardButton(text='◻', callback_data=4)
+        b5 = types.InlineKeyboardButton(text='◻', callback_data=5)
+        b6 = types.InlineKeyboardButton(text='◻', callback_data=6)
+        b7 = types.InlineKeyboardButton(text='◻', callback_data=7)
+        b8 = types.InlineKeyboardButton(text='◻', callback_data=8)
+        b9 = types.InlineKeyboardButton(text='◻', callback_data=9)
+        keyboard.add(b1, b2, b3, b4, b5, b6, b7, b8, b9)
+
+    if hod != 0:
+        keyboard = types.InlineKeyboardMarkup(row_width=3)
+        b1 = types.InlineKeyboardButton(text=board[0][0], callback_data=1)
+        b2 = types.InlineKeyboardButton(text=board[0][1], callback_data=2)
+        b3 = types.InlineKeyboardButton(text=board[0][2], callback_data=3)
+        b4 = types.InlineKeyboardButton(text=board[1][0], callback_data=4)
+        b5 = types.InlineKeyboardButton(text=board[1][1], callback_data=5)
+        b6 = types.InlineKeyboardButton(text=board[1][2], callback_data=6)
+        b7 = types.InlineKeyboardButton(text=board[2][0], callback_data=7)
+        b8 = types.InlineKeyboardButton(text=board[2][1], callback_data=8)
+        b9 = types.InlineKeyboardButton(text=board[2][2], callback_data=9)
+        keyboard.add(b1, b2, b3, b4, b5, b6, b7, b8, b9)
+        return keyboard
+
+    return keyboard
+
+def query_handler(call):
+    global board, players
+    if call.data == '1':
+        call_data(0, 0, call=call)
     elif call.data == '2':
-        call_data(0, 1,call.message)
+        call_data(0, 1, call=call)
     elif call.data == '3':
-        call_data(0, 2, call.message)
+        call_data(0, 2, call=call)
     elif call.data == '4':
-        call_data(1, 0, call.message)
+        call_data(1, 0, call=call)
     elif call.data == '5':
-        call_data(1, 1, call.message)
+        call_data(1, 1, call=call)
     elif call.data == '6':
-        call_data(1, 2, call.message)
+        call_data(1, 2, call=call)
     elif call.data == '7':
-        call_data(2, 0, call.message)
+        call_data(2, 0, call=call)
     elif call.data == '8':
-        call_data(2, 1, call.message)
+        call_data(2, 1, call=call)
     elif call.data == '9':
-        call_data(2, 2, call.message)
+        call_data(2, 2, call=call)
     else:
         bot.answer_callback_query(call.message.chat.id, 'Игра завершена!')
 
-
-def call_data(index1, index2, message):
-    if hod % 2 != 0:
-        if board[index1][index2] == symb.symbolDef:
-            board[index1][index2] = symb.symbolX
-            plus_hod()
-            bot.send_message(message.chat.id,'Твой ход',reply_markup=make_board())
-    elif hod % 2 != 0:
-        if board[index1][index2] == symb.symbolDef:
-            board[index1][index2] = symb.symbol0
-            plus_hod()
-            bot.send_message(message.chat.id,'Твой ход',reply_markup=make_board())
-
-# def call_data(index1, index2, call):
-#     global board, player
-#     if hod % 2 != 0 or check:
-#         if board[index1][index2] == symb.symbolDef:
-#             board[index1][index2] = symb.symbolX
-#             plus_hod()
-#             bot.edit_message_reply_markup(user2.id, message_id=us2_mes.id, reply_markup=make_board())
-#             bot.edit_message_reply_markup(user1.id, message_id=us1_mes.id, reply_markup=make_board())
-#             if check_win(board)[0] == True or check_win(board)[0] == None:
-#                 if check_win(board)[0] == None:
-#                     draw = True
-#                 else:
-#                     draw = False
-#                 bot.edit_message_reply_markup(user1.id, message_id=us1_mes.id,
-#                                               reply_markup=make_board(end=True, draw=draw, symbol=check_win(board)))
-#                 bot.edit_message_reply_markup(user2.id, message_id=us2_mes.id,
-#                                               reply_markup=make_board(end=True, draw=draw, symbol=check_win(board)))
-#                 players.clear()
-#         else:
-#             bot.answer_callback_query(callback_query_id=call.id, text='Эта клетка уже занята!')
-#     elif hod % 2 != 0 and call.message.chat.id == user1.id:
-#         if board[index1][index2] == symb.symbolDef:
-#             board[index1][index2] = symb.symbol0
-#             plus_hod()
-#             bot.edit_message_reply_markup(user2.id, message_id=us2_mes.id, reply_markup=make_board())
-#             bot.edit_message_reply_markup(user1.id, message_id=us1_mes.id, reply_markup=make_board())
-#             if check_win(board)[0] == True or check_win(board)[0] == None:
-#                 if check_win(board)[0] == None:
-#                     draw = True
-#                 else:
-#                     draw = False
-#                 bot.edit_message_reply_markup(user1.id, message_id=us1_mes.id,
-#                                               reply_markup=make_board(end=True, draw=draw, symbol=check_win(board)))
-#                 bot.edit_message_reply_markup(user2.id, message_id=us2_mes.id,
-#                                               reply_markup=make_board(end=True, draw=draw, symbol=check_win(board)))
-#                 players.clear()
-#         else:
-#             bot.answer_callback_query(callback_query_id=call.id, text='Эта клетка уже занята!')
-#     else:
-#         bot.answer_callback_query(callback_query_id=call.id, text='Не твой ход! Ожидай соперника!')
-
-def make_board(end = False, draw = False, symbol = symb.symbolX ):
-    # if end:
-    #     keyboard = types.InlineKeyboardMarkup(row_width=3)
-    #     if draw:
-    #         txt = 'Конец! Ничья!'
-    #     else:
-    #         txt = f'Конец! Победил игрок , который играл за "{symbol[1]}"'
-    #     b1 = types.InlineKeyboardButton(text=txt, callback_data=102)
-    #     keyboard.add(b1)
-    #     return keyboard
-    keyboard = types.InlineKeyboardMarkup(row_width=3)
-    b1 = types.InlineKeyboardButton(text=board[0][0], callback_data=1)
-    b2 = types.InlineKeyboardButton(text=board[0][1], callback_data=2)
-    b3 = types.InlineKeyboardButton(text=board[0][2], callback_data=3)
-    b4 = types.InlineKeyboardButton(text=board[1][0], callback_data=4)
-    b5 = types.InlineKeyboardButton(text=board[1][1], callback_data=5)
-    b6 = types.InlineKeyboardButton(text=board[1][2], callback_data=6)
-    b7 = types.InlineKeyboardButton(text=board[2][0], callback_data=7)
-    b8 = types.InlineKeyboardButton(text=board[2][1], callback_data=8)
-    b9 = types.InlineKeyboardButton(text=board[2][2], callback_data=9)
-    keyboard.add(b1, b2, b3, b4, b5, b6, b7, b8, b9)
-    return keyboard
-
-#Просмотр побед
 def check_win(board):
     for i in range(3):
-        if board[i][1] == board[i][0] and board[i][1] == board[i][2] and board[i][1] != symb.symbolDef:
+        if board[i][1] == board[i][0] and board[i][1] == board[i][2] and board[i][1] != '◻':
             return True, board[i][0]
     for i in range(3):
-        if board[1][i] == board[0][i] and board[1][i] == board[2][i] and board[1][i] != symb.symbolDef:
+        if board[1][i] == board[0][i] and board[1][i] == board[2][i] and board[1][i] != '◻':
             return True, board[1][i]
     for i in range(2):
-        if board[0][0] == board[1][1] and board[1][1] != symb.symbolDef and board[1][1] == board[2][2]:
+        if board[0][0] == board[1][1] and board[1][1] != '◻' and board[1][1] == board[2][2]:
             return True, board[0][0]
-        elif board[1][1] != symb.symbolDef and board[1][1] == board[0][2] and board[0][2] == board[2][0]:
+        elif board[1][1] != '◻' and board[1][1] == board[0][2] and board[0][2] == board[2][0]:
             return True, board[1][1]
-    if board[0][0] != symb.symbolDef and board[1][0] != symb.symbolDef and board[2][0] != symb.symbolDef and board[1][0] != symb.symbolDef and board[1][
-        1] != symb.symbolDef and board[1][2] != symb.symbolDef and board[2][0] != symb.symbolDef and board[2][1] != symb.symbolDef and board[2][2] != symb.symbolDef:
+    if board[0][0] != '◻' and board[1][0] != '◻' and board[2][0] != '◻' and board[1][0] != '◻' and board[1][
+        1] != '◻' and board[1][2] != '◻' and board[2][0] != '◻' and board[2][1] != '◻' and board[2][2] != '◻':
         return None, None
     return False, False
 
-
-
-
+def call_data(index1, index2, call):
+    bot.send_message(call.from_user.id,"Ghvd")
 
 
 
@@ -403,7 +315,7 @@ def time_command(message: telebot.types.Message):
 
 # Точка входа
 def main():
-    bot.infinity_polling()
+    bot.polling()
 
 #Запуск
 main()
