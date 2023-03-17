@@ -197,6 +197,7 @@ winbool = False
 losebool = False
 drawbool=False
 
+victories=[ [] ]
 #Словарь доски, где хранится кнопка и ее callback data
 board={}
 
@@ -327,6 +328,61 @@ def callbackInline(call):
             clear()
             bot.send_message(call.message.chat.id, "Ого! У нас ничья! В следующий раз постораюсь отыграться  😉. Если хочешь сыграть еще раз введи команду /newgame")
             drawbool=False
+
+#Победные линии
+def line_win():
+    global victories
+    victories = [[ground[0], ground[1], ground[2]],
+                 [ground[3], ground[4], ground[5]],
+                 [ground[6], ground[7], ground[8]],
+                 [ground[0], ground[3], ground[6]],
+                 [ground[1], ground[4], ground[7]],
+                 [ground[2], ground[5], ground[8]],
+                 [ground[0], ground[4], ground[8]],
+                 [ground[2], ground[4], ground[6]]]
+
+#1.Проверяем все победные линии в игре и подсчитываем в них их количество крестиков и ноликов
+#2.Если находим такую линию, то возвращаем позицию на этой линии куда нужно сделать ход
+def check_line(summ_o,summ_x):
+    step =""
+    for line in victories:
+        o=0
+        x=0
+        for j in range(0,3):
+            if ground[line[j]] == ai_symbol:
+                o=o+1
+            if ground[line[j]] == player_symbol:
+                x=x+1
+        if o == summ_o and x == summ_x:
+            for j in range(0,3):
+                if ground[line[j]] != ai_symbol and ground[line[j]] != player_symbol:
+                   step=ground[line[j]]
+    return step
+def ai():
+    step=""
+    # 1) если на какой либо из победных линий 2 свои фигуры и 0 чужих - ставим
+    step = check_line(2, 0)
+
+    # 2) если на какой либо из победных линий 2 чужие фигуры и 0 своих - ставим
+    if step == "":
+        step = check_line(0, 2)
+
+    # 3) если 1 фигура своя и 0 чужих - ставим
+    if step == "":
+        step = check_line(1, 0)
+
+    # 4) центр пуст, то занимаем центр
+    if step == "":
+        if ground[4] != player_symbol and ground[4] != ai_symbol:
+            step = 5
+
+    # 5) если центр занят, то занимаем первую ячейку
+    if step == "":
+        if ground[0] != player_symbol and ground[0] != ai_symbol:
+            step = 1
+
+    return step
+
 
 
 # Точка входа
