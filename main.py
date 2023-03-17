@@ -191,126 +191,142 @@ def getWeather(message):
             bot.register_next_step_handler(msg, getWeather)
             break
 
+#Игра крестики нолики
+
+winbool = False
+losebool = False
+drawbool=False
+
+#Словарь доски, где хранится кнопка и ее callback data
+board={}
+
+#Поле
+ground = [" ", " ", " ",
+          " ", " ", " ",
+          " ", " ", " ", ]
+
+player_symbol='x'
+ai_symbol='0'
+
+#Функция победы
+def win(cell_1, cell_2, cell_3):
+    if cell_1 == player_symbol and cell_2 == player_symbol and cell_3 == player_symbol:
+        print("win")
+        global winbool
+        winbool = True
+
+#Функция поражения
+def lose(cell_1, cell_2, cell_3):
+    if cell_1 == ai_symbol and cell_2 == ai_symbol and cell_3 == ai_symbol:
+        print("lose")
+        global losebool
+        losebool = True
+
+#Функция с ничьей
+def draw(cell_1, cell_2, cell_3,cell_4, cell_5, cell_6,cell_7, cell_8, cell_9):
+    if cell_1 != ai_symbol and cell_2 != ai_symbol and cell_3 != ai_symbol and cell_4 != ai_symbol and cell_5 != ai_symbol and cell_6 != ai_symbol and  cell_7 != ai_symbol and cell_8 != ai_symbol and cell_9 != ai_symbol:
+        if cell_1 != player_symbol and cell_2 != player_symbol and cell_3 != player_symbol and cell_4 != player_symbol and cell_5 != player_symbol and cell_6 != player_symbol and  cell_7 != player_symbol and cell_8 != player_symbol and cell_9 != player_symbol:
+            print("draw")
+            global drawbool
+            drawbool = True
+#Функция очистки поля
+def clear():
+    global ground
+    ground = [" ", " ", " ",
+              " ", " ", " ",
+              " ", " ", " ", ]
+
 #Выбор игры (крестик или нолик)
-
-check=False
-
-#Выбор игры (крестик или нолик)
-
 @bot.message_handler(commands=['newgame'])
 def newgame_command(message: telebot.types.Message):
-    markup = telebot.types.InlineKeyboardMarkup()
-    markup.add(telebot.types.InlineKeyboardButton(text=symb.symbolX, callback_data='x'))
-    markup.add(telebot.types.InlineKeyboardButton(text=symb.symbol0, callback_data='o'))
 
-    if message.text == '/newgame':
-        bot.send_message(message.chat.id, text='Выбери за кого будешь играть', reply_markup=markup)
+  board = {}
+  bot.send_message(message.chat.id, "Игра началась")
 
-def plus_hod():
-    global hod
-    hod += 1
+  #Создаем клавиатуру
+  global keyboard
+  keyboard=types.InlineKeyboardMarkup(row_width=3)
 
+  #Добавляем в словарь доски кнопки клавиатуры
+  for i in range(9):
+      board[i] = types.InlineKeyboardButton(ground[i], callback_data=str(i))
+
+  keyboard.row(board[0], board[1], board[2])
+  keyboard.row(board[3], board[4], board[5])
+  keyboard.row(board[6], board[7], board[8])
+  #Отрисовываем кнопки
+  bot.send_message(message.chat.id, "Выбери клетку", reply_markup=keyboard)
+
+#Обработка кнопок
 @bot.callback_query_handler(func=lambda call: True)
-def step(call: telebot.types.CallbackQuery):
-    if call.data == 'x':
-        bot.send_message(call.from_user.id,'Ваш ход', reply_markup=board())
-    if call.data == '1':
+def callbackInline(call):
+    if (call.message):
+        #Рандомный ход для бота
+        random_cell = random.randint(0, 8)
+        if ground[random_cell] == player_symbol:
+            random_cell = random.randint(0, 8)
+        if ground[random_cell] == ai_symbol:
+            random_cell = random.randint(0, 8)
+        if ground[random_cell] == " ":
+            ground [random_cell] = ai_symbol
+        # Ход игрока
+        for i in range(9):
+            if call.data == str(i):
+                if (ground[i] == " "):
+                    ground[i] = player_symbol
 
+            #Проверка на победу игрока
+            win(ground[0], ground[1], ground[2])
+            win(ground[3], ground[4], ground[5])
+            win(ground[6], ground[7], ground[8])
+            win(ground[0], ground[3], ground[6])
+            win(ground[1], ground[4], ground[7])
+            win(ground[2], ground[5], ground[8])
+            win(ground[0], ground[4], ground[8])
+            win(ground[6], ground[4], ground[2])
+            #Проверка на поражение игрока
+            lose(ground[0], ground[1], ground[2])
+            lose(ground[3], ground[4], ground[5])
+            lose(ground[6], ground[7], ground[8])
+            lose(ground[0], ground[3], ground[6])
+            lose(ground[1], ground[4], ground[7])
+            lose(ground[2], ground[5], ground[8])
+            lose(ground[0], ground[4], ground[8])
+            lose(ground[6], ground[4], ground[2])
+            #Ничья
+            draw(ground[0], ground[1], ground[2],
+                 ground[3], ground[4], ground[5],
+                 ground[6], ground[7], ground[8])
 
-def board(end=False, draw=False, symbol='x'):
+            #Добавление новой кнопки
+            board[i] = types.InlineKeyboardButton(ground[i], callback_data=str(i))
 
-    global b1, b2, b3, b4, b5, b6, b7, b8, b9,board
-    board = [['◻'] * 3 for i in range(3)]
-    hod = 0
-
-    if end:
         keyboard = types.InlineKeyboardMarkup(row_width=3)
-        if draw:
-            txt = 'Конец! Ничья!'
-        else:
-            txt = f'Конец! Победил игрок , который играл за "{symbol[1]}"'
-        b1 = types.InlineKeyboardButton(text=txt, callback_data=102)
-        keyboard.add(b1)
-        return keyboard
-    if hod == 0:
-        keyboard = types.InlineKeyboardMarkup(row_width=3)
-        b1 = types.InlineKeyboardButton(text='◻', callback_data=1)
-        b2 = types.InlineKeyboardButton(text='◻', callback_data=2)
-        b3 = types.InlineKeyboardButton(text='◻', callback_data=3)
-        b4 = types.InlineKeyboardButton(text='◻', callback_data=4)
-        b5 = types.InlineKeyboardButton(text='◻', callback_data=5)
-        b6 = types.InlineKeyboardButton(text='◻', callback_data=6)
-        b7 = types.InlineKeyboardButton(text='◻', callback_data=7)
-        b8 = types.InlineKeyboardButton(text='◻', callback_data=8)
-        b9 = types.InlineKeyboardButton(text='◻', callback_data=9)
-        keyboard.add(b1, b2, b3, b4, b5, b6, b7, b8, b9)
+        keyboard.row(board[0], board[1], board[2])
+        keyboard.row(board[3], board[4], board[5])
+        keyboard.row(board[6], board[7], board[8])
+        #Замена предыдущего сообщения(клава) бота на вновь пересозданную
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Я сходил.Теперь твой ход",
+                              reply_markup=keyboard)
+        #Если игрок победил
+        global winbool
+        if winbool:
+            clear()
+            bot.send_message(call.message.chat.id, "Я проиграл 😞. Эх, все-таки ты обыграл меня. Если хочешь сыграть еще раз введи команду /newgame")
+            winbool = False
 
-    if hod != 0:
-        keyboard = types.InlineKeyboardMarkup(row_width=3)
-        b1 = types.InlineKeyboardButton(text=board[0][0], callback_data=1)
-        b2 = types.InlineKeyboardButton(text=board[0][1], callback_data=2)
-        b3 = types.InlineKeyboardButton(text=board[0][2], callback_data=3)
-        b4 = types.InlineKeyboardButton(text=board[1][0], callback_data=4)
-        b5 = types.InlineKeyboardButton(text=board[1][1], callback_data=5)
-        b6 = types.InlineKeyboardButton(text=board[1][2], callback_data=6)
-        b7 = types.InlineKeyboardButton(text=board[2][0], callback_data=7)
-        b8 = types.InlineKeyboardButton(text=board[2][1], callback_data=8)
-        b9 = types.InlineKeyboardButton(text=board[2][2], callback_data=9)
-        keyboard.add(b1, b2, b3, b4, b5, b6, b7, b8, b9)
-        return keyboard
-
-    return keyboard
-
-def query_handler(call):
-    global board, players
-    if call.data == '1':
-        call_data(0, 0, call=call)
-    elif call.data == '2':
-        call_data(0, 1, call=call)
-    elif call.data == '3':
-        call_data(0, 2, call=call)
-    elif call.data == '4':
-        call_data(1, 0, call=call)
-    elif call.data == '5':
-        call_data(1, 1, call=call)
-    elif call.data == '6':
-        call_data(1, 2, call=call)
-    elif call.data == '7':
-        call_data(2, 0, call=call)
-    elif call.data == '8':
-        call_data(2, 1, call=call)
-    elif call.data == '9':
-        call_data(2, 2, call=call)
-    else:
-        bot.answer_callback_query(call.message.chat.id, 'Игра завершена!')
-
-def check_win(board):
-    for i in range(3):
-        if board[i][1] == board[i][0] and board[i][1] == board[i][2] and board[i][1] != '◻':
-            return True, board[i][0]
-    for i in range(3):
-        if board[1][i] == board[0][i] and board[1][i] == board[2][i] and board[1][i] != '◻':
-            return True, board[1][i]
-    for i in range(2):
-        if board[0][0] == board[1][1] and board[1][1] != '◻' and board[1][1] == board[2][2]:
-            return True, board[0][0]
-        elif board[1][1] != '◻' and board[1][1] == board[0][2] and board[0][2] == board[2][0]:
-            return True, board[1][1]
-    if board[0][0] != '◻' and board[1][0] != '◻' and board[2][0] != '◻' and board[1][0] != '◻' and board[1][
-        1] != '◻' and board[1][2] != '◻' and board[2][0] != '◻' and board[2][1] != '◻' and board[2][2] != '◻':
-        return None, None
-    return False, False
-
-def call_data(index1, index2, call):
-    bot.send_message(call.from_user.id,"Ghvd")
-
-
-
-#Команда текущего времени
-@bot.message_handler(commands=['time'])
-def time_command(message: telebot.types.Message):
-    bot.send_message(message.from_user.id, "Текущее время в твоем городе : \n"
-                                f"---{datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}---")
+        #Если игрок проиграл
+        global losebool
+        if losebool:
+            clear()
+            bot.send_message(call.message.chat.id, "Я выиграл  😀. Если хочешь сыграть еще раз введи команду /newgame")
+            losebool = False
+        #Если ничья
+        global drawbool
+        if drawbool:
+            clear()
+            bot.send_message(call.message.chat.id, "Ого! У нас ничья! В следующий раз постораюсь отыграться  😉. Если хочешь сыграть еще раз введи команду /newgame")
+            drawbool=False
 
 
 # Точка входа
