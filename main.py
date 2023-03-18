@@ -197,17 +197,26 @@ winbool = False
 losebool = False
 drawbool=False
 
-victories=[ [] ]
+victories=[]
 #Словарь доски, где хранится кнопка и ее callback data
 board={}
 
 #Поле
 ground = [" ", " ", " ",
           " ", " ", " ",
-          " ", " ", " ", ]
+          " ", " ", " ",]
 
-player_symbol='x'
-ai_symbol='0'
+CrossesOrToe = ["0", "X"]
+
+player_symbol = CrossesOrToe[random.randint(0, 1)]
+
+
+ai_symbol = ""
+
+if (player_symbol == "0"):
+    ai_symbol = "X"
+else:
+    ai_symbol = "0"
 
 #Функция победы
 def win(cell_1, cell_2, cell_3):
@@ -240,6 +249,9 @@ def clear():
 #Выбор игры (крестик или нолик)
 @bot.message_handler(commands=['newgame'])
 def newgame_command(message: telebot.types.Message):
+  #Если вдруг доска не очистилась, то при вводе команды очищаем список
+  if (message.text[:1] == '/'):
+    clear()
 
   board = {}
   bot.send_message(message.chat.id, "Игра началась")
@@ -258,25 +270,35 @@ def newgame_command(message: telebot.types.Message):
   #Отрисовываем кнопки
   bot.send_message(message.chat.id, "Выбери клетку", reply_markup=keyboard)
 
+#Ход в ячейку
+def step_map(step,symb):
+    ind=ground.index(step)
+    ground[ind]=symb
+
 #Обработка кнопок
 @bot.callback_query_handler(func=lambda call: True)
 def callbackInline(call):
     if (call.message):
-        #Рандомный ход для бота
-        random_cell = random.randint(0, 8)
-        if ground[random_cell] == player_symbol:
-            random_cell = random.randint(0, 8)
-        if ground[random_cell] == ai_symbol:
-            random_cell = random.randint(0, 8)
-        if ground[random_cell] == " ":
-            ground [random_cell] = ai_symbol
-        # Ход игрока
         for i in range(9):
             if call.data == str(i):
                 if (ground[i] == " "):
                     ground[i] = player_symbol
 
-            #Проверка на победу игрока
+         # Рандомный ход для бота
+        random_cell = random.randint(0, 8)
+        if ground[random_cell] == player_symbol:
+            random_cell = random.randint(0, 8)
+        if ground[random_cell] == ai_symbol:
+             random_cell = random.randint(0, 8)
+        if ground[random_cell] == " ":
+            ground[random_cell] = ai_symbol
+
+        for i in range(9):
+            # Добавление новой кнопки
+            board[i] = types.InlineKeyboardButton(ground[i], callback_data=str(i))
+
+        for i in range(9):
+            # Проверка на победу игрока
             win(ground[0], ground[1], ground[2])
             win(ground[3], ground[4], ground[5])
             win(ground[6], ground[7], ground[8])
@@ -285,7 +307,7 @@ def callbackInline(call):
             win(ground[2], ground[5], ground[8])
             win(ground[0], ground[4], ground[8])
             win(ground[6], ground[4], ground[2])
-            #Проверка на поражение игрока
+            # Проверка на поражение игрока
             lose(ground[0], ground[1], ground[2])
             lose(ground[3], ground[4], ground[5])
             lose(ground[6], ground[7], ground[8])
@@ -294,13 +316,6 @@ def callbackInline(call):
             lose(ground[2], ground[5], ground[8])
             lose(ground[0], ground[4], ground[8])
             lose(ground[6], ground[4], ground[2])
-            #Ничья
-            draw(ground[0], ground[1], ground[2],
-                 ground[3], ground[4], ground[5],
-                 ground[6], ground[7], ground[8])
-
-            #Добавление новой кнопки
-            board[i] = types.InlineKeyboardButton(ground[i], callback_data=str(i))
 
         keyboard = types.InlineKeyboardMarkup(row_width=3)
         keyboard.row(board[0], board[1], board[2])
@@ -344,20 +359,24 @@ def line_win():
 #1.Проверяем все победные линии в игре и подсчитываем в них их количество крестиков и ноликов
 #2.Если находим такую линию, то возвращаем позицию на этой линии куда нужно сделать ход
 def check_line(summ_o,summ_x):
-    step =""
+    step = ""
     for line in victories:
         o=0
         x=0
+        #проверка на количство крестиков и ноликов
         for j in range(0,3):
-            if ground[line[j]] == ai_symbol:
-                o=o+1
-            if ground[line[j]] == player_symbol:
-                x=x+1
+            if ground[line[j]] == "0":
+                o = o + 1
+            if ground[line[j]] == "x":
+                x = x + 1
+        #Если находим линию для победы то ставим крестик или нолик
         if o == summ_o and x == summ_x:
             for j in range(0,3):
-                if ground[line[j]] != ai_symbol and ground[line[j]] != player_symbol:
+                if ground[line[j]] != "0" and ground[line[j]] != "x":
                    step=ground[line[j]]
     return step
+
+#Выбор хода у аи
 def ai():
     step=""
     # 1) если на какой либо из победных линий 2 свои фигуры и 0 чужих - ставим
@@ -373,14 +392,13 @@ def ai():
 
     # 4) центр пуст, то занимаем центр
     if step == "":
-        if ground[4] != player_symbol and ground[4] != ai_symbol:
-            step = 5
+        if ground[4] != "x" and ground[4] != "0":
+            step = ground[5]
 
     # 5) если центр занят, то занимаем первую ячейку
     if step == "":
-        if ground[0] != player_symbol and ground[0] != ai_symbol:
-            step = 1
-
+        if ground[0] != "x" and ground[0] != "0":
+            step = ground[1]
     return step
 
 
