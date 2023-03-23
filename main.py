@@ -304,28 +304,31 @@ def callbackInline(call):
         for i in range(9):
             board[i] = types.InlineKeyboardButton(ground[i], callback_data=str(i))
 
+        #Ход бота(рандомный)
+        # random_go()
+
         # Xol АИ
-        #Проверки :)
-        if(ground[4] == player_symbol and ground[0] == " " and ground[5] == " "):
-           ground[0] = ai_symbol
-        elif(ground[2]==player_symbol and ground[1] == " " and ground[4] == " " and ground[5] == " "):
-            ground[4]=ai_symbol
+        #Проверки
+        if (ground[4] == player_symbol and ground[0] == " " and ground[5] == " "):
+            ground[0] = ai_symbol
+        elif (ground[2] == player_symbol and ground[1] == " " and ground[4] == " " and ground[5] == " "):
+            ground[4] = ai_symbol
         elif (ground[3] == player_symbol and ground[4] == player_symbol and ground[5] == " "):
             ground[5] = ai_symbol
-        # elif (ground[6] == player_symbol or ground[8]== player_symbol and ground[4] == " " and ground[7] == player_symbol):
-        #     ground[4] = ai_symbol
-        elif(ground[4]==player_symbol and ground[8]==player_symbol and ground[0]==" " and ground[8] == " "):
-            ground[0]=ai_symbol
-        elif(ground[6] == " " and ground[7]==player_symbol and ground[8]==player_symbol):
-            ground[6]=ai_symbol
-        elif(ground[6]==player_symbol and ground[7] == player_symbol and ground[8]==" "):
-            ground[8]=ai_symbol
+            # elif (ground[6] == player_symbol or ground[8]== player_symbol and ground[4] == " " and ground[7] == player_symbol):
+            #     ground[4] = ai_symbol
+        elif (ground[4] == player_symbol and ground[8] == player_symbol and ground[0] == " " and ground[8] == " "):
+            ground[0] = ai_symbol
+        elif (ground[6] == " " and ground[7] == player_symbol and ground[8] == player_symbol):
+            ground[6] = ai_symbol
+        elif (ground[6] == player_symbol and ground[7] == player_symbol and ground[8] == " "):
+            ground[8] = ai_symbol
         elif (ground[8] == player_symbol and ground[7] == player_symbol and ground[6] == " "):
             ground[6] = ai_symbol
-        elif(ground[1] == player_symbol and ground[4]==player_symbol and ground[7] == " "):
-            ground[7]=ai_symbol
-        elif(ground[0] == player_symbol and ground[4] == " "):
-            ground[4]=ai_symbol
+        elif (ground[1] == player_symbol and ground[4] == player_symbol and ground[7] == " "):
+            ground[7] = ai_symbol
+        elif (ground[0] == player_symbol and ground[4] == " "):
+            ground[4] = ai_symbol
         elif (ground[2] == player_symbol and ground[4] == player_symbol and ground[6] == " " and ground[5] == " "):
             ground[6] = ai_symbol
         elif (ground[2] == player_symbol and ground[5] == player_symbol and ground[8] == " "):
@@ -334,11 +337,16 @@ def callbackInline(call):
             ground[6] = ai_symbol
         elif (ground[4] == player_symbol and ground[5] == player_symbol and ground[3] == " "):
             ground[3] = ai_symbol
-        elif(ground[7]==player_symbol and ground[0]==" " and ground[1]==" " and ground[2]==" " and ground[3]==" " and ground[4]==" " and ground[5]==" " and ground[6]==" " and ground[8]==" "):
-            ground[4]=ai_symbol
-        elif (ground[6] == player_symbol and ground[0] == " " and ground[1] == " " and ground[2] == " " and ground[3] == " " and ground[4] == " " and ground[5] == " " and ground[7] == " " and ground[8] == " "):
+        elif (ground[7] == player_symbol and ground[0] == " " and ground[1] == " " and ground[2] == " " and ground[
+            3] == " " and ground[4] == " " and ground[5] == " " and ground[6] == " " and ground[8] == " "):
             ground[4] = ai_symbol
-        #:)
+        elif (ground[6] == player_symbol and ground[0] == " " and ground[1] == " " and ground[2] == " " and ground[
+            3] == " " and ground[4] == " " and ground[5] == " " and ground[7] == " " and ground[8] == " "):
+            ground[4] = ai_symbol
+        elif (ground[3] == player_symbol and ground[0] == " " and ground[1] == " " and ground[2] == " " and ground[
+            4] == " " and ground[5] == " " and ground[6] == " " and ground[7] == " " and ground[8] == " "):
+            ground[4] = ai_symbol
+        #
         else:
          best_spot=minimax(ground,ai_symbol)
          for i in range(9):
@@ -410,6 +418,7 @@ def random_go():
     if ground[random_cell] == " ":
         ground[random_cell] = ai_symbol
 
+#Возврат индексов пустых клеток доски
 def empty_indeces(board):
      list_null_board=[]
      for i in range(9):
@@ -417,7 +426,7 @@ def empty_indeces(board):
              list_null_board.append(i)
      return list_null_board
 
-
+#Проверка на победу для алгоритма минимакс
 def winning(board, player):
   if(
     (board[0] == player and board[1] == player and board[2] == player) or
@@ -433,9 +442,12 @@ def winning(board, player):
   else :
       return False
 
+#Алгоритм минимакс для АИ
 def minimax(board,player):
     global best_move
+    #доступные клетки
     avail_spots=empty_indeces(board)
+    #Проверка на терминальное состояние(победа, поражение или ничья)
     if(winning(board,player_symbol)):
         return -10
     elif(winning(board,ai_symbol)):
@@ -443,34 +455,46 @@ def minimax(board,player):
     elif(len(avail_spots) == 0):
         return 0
 
+    #Список для хранения индекса на который будем ставить O
     move_win=[]
+    #Список для очков каждого хода
     moves=[]
+    #Цикл по всем доступным клеткам
     for i in range(len(avail_spots)):
+        #Словарь ходов
         move={}
+        #Задаем индекс пустой клетки
         move['index']=board[avail_spots[i]]
+        #Совершить ход за текущего игрока
         board[avail_spots[i]] = player
 
+        #Получить очки, заработанные после вызова минимакса от противника текущего игрока
         if player == ai_symbol:
-            # board[avail_spots[i]]=player
+            #Результат минимакс
             result=minimax(board,player_symbol)
+            #Записываем результат в словарь
             move['score']=result
         else:
             result=minimax(board,ai_symbol)
             move['score'] = result
 
+        #Добавить индекс поля в который будем ходить
         move_win.append(avail_spots[i])
+        #Очистить клетку
         board[avail_spots[i]] = move['index']
+        #Положить словарь очков в список
         moves.append(move['score'])
 
-
+        #Если это ход ИИ, пройти циклом по ходам и выбрать ход с наибольшим колличеством очков
         if(player == ai_symbol):
+            #Присваиваем очень маленькое число
             best_score=-10000
+            #Tсли ход move приносит больше очков, чем bestScore, алгоритм запоминает этот move
             for i in range(len(moves)):
                 if(moves[i] > best_score):
                     best_score=moves[i]
                     best_move=i
-
-
+        #Иначе пройти циклом по ходам и выбрать ход с наименьшим количеством очков
         else:
             best_score=10000
             for i in range(len(moves)):
@@ -478,10 +502,9 @@ def minimax(board,player):
                     best_score=moves[i]
                     best_move=i
 
+    #Вернуть индекс выбранного хода
     return move_win[best_move]
 
-class Move:
-    pass
 # Точка входа
 def main():
     bot.polling()
