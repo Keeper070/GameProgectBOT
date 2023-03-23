@@ -237,6 +237,15 @@ def lose(cell_1, cell_2, cell_3):
         global losebool
         losebool = True
 
+#Проверка на ничью
+def draw(message):
+    if(ground[0] != " " and ground[1] != " " and ground[2] != " " and ground[3] != " " and
+       ground[4] != " " and ground[5] != " " and ground[6] != " " and ground[7] != " " and
+       ground[8] != " "):
+        bot.send_message(message.chat.id,"Ого! У нас ничья! В следующий раз постораюсь отыграться  😉. Если хочешь сыграть еще раз введи команду /newgame")
+
+
+
 #Функция с ничьей
 def check_draw():
     for i in range(9):
@@ -346,6 +355,12 @@ def callbackInline(call):
         elif (ground[3] == player_symbol and ground[0] == " " and ground[1] == " " and ground[2] == " " and ground[
             4] == " " and ground[5] == " " and ground[6] == " " and ground[7] == " " and ground[8] == " "):
             ground[4] = ai_symbol
+        elif(ground[1] == player_symbol and ground[0] == " " and ground[2] == " " and ground[3] == " " and ground[
+            4] == " " and ground[5] == " " and ground[6] == " " and ground[7] == " " and ground[8] == " "):
+            ground[4]=ai_symbol
+        elif (ground[0] == ai_symbol and ground[1] == " " and ground[2] == " " and ground[3] == " " and ground[
+            4] == player_symbol and ground[5] == " " and ground[6] == " " and ground[7] == " " and ground[8] == player_symbol):
+            ground[2] = ai_symbol
         #
         else:
          best_spot=minimax(ground,ai_symbol)
@@ -378,11 +393,8 @@ def callbackInline(call):
             lose(ground[2], ground[5], ground[8])
             lose(ground[0], ground[4], ground[8])
             lose(ground[6], ground[4], ground[2])
-            # на ничью
-            # if(check_draw()):
-            #     bot.send_message(call.message.chat.id,"Ого! У нас ничья! В следующий раз постораюсь отыграться  😉. Если хочешь сыграть еще раз введи команду /newgame")
-
-
+        # на ничью
+        draw(call.message)
 
         keyboard = types.InlineKeyboardMarkup(row_width=3)
         keyboard.row(board[0], board[1], board[2])
