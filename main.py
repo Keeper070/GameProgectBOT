@@ -209,19 +209,20 @@ ground = [" ", " ", " ",
 zero_or_x = ["O", "X"]
 
 #Рандомный выбор за кого будет играть игрок
-player_symbol = zero_or_x[random.randint(0, 1)]
+# player_symbol = zero_or_x[random.randint(0, 1)]
 
-MAX="X"
-#Символ ии
-ai_symbol = ""
+# MAX="X"
+# #Символ ии
+# ai_symbol = ""
+#
+# if (player_symbol == "X"):
+#     ai_symbol = "O"
+# else:
+#     ai_symbol = "X"
 
-if (player_symbol == "X"):
-    ai_symbol = "O"
-else:
-    ai_symbol = "X"
+player_symbol = "X"
+ai_symbol = "O"
 
-# player_symbol = "X"
-# ai_symbol = "O"
 #Функция победы
 def win(cell_1, cell_2, cell_3):
     if cell_1 == player_symbol and cell_2 == player_symbol and cell_3 == player_symbol:
@@ -247,9 +248,9 @@ def check_draw():
 #Функция очистки поля
 def clear():
     global ground
-    ground = [" ", " ", " ",
-              " ", " ", " ",
-              " ", " ", " ", ]
+    ground = [" ", "O", "X",
+              " ", "X", " ",
+              "O", " ", " ", ]
 
 # Инициализация победных линий
 victories = [[0,1,2],
@@ -307,7 +308,10 @@ def callbackInline(call):
         # random_go()
 
         # Ход АИ
-
+        best_spot=minimax(ground,ai_symbol)
+        for i in range(9):
+            if(best_spot == i):
+                ground[i] = ai_symbol
         # Добавление новой кнопки
         for i in range(9):
             board[i] = types.InlineKeyboardButton(ground[i], callback_data=str(i))
@@ -372,17 +376,75 @@ def random_go():
     if ground[random_cell] == " ":
         ground[random_cell] = ai_symbol
 
-def minimax(board,is_maximizing):
-    if(losebool):
-        return 1
-    elif(winbool):
-        return -1
-
-    if(is_maximizing):
-        bestscore=-1000
+def empty_indeces(board):
+     list_null_board=[]
+     for i in range(9):
+         if(board[i] == " "):
+             list_null_board.append(i)
+     return list_null_board
 
 
+def winning(board, player):
+  if(
+    (board[0] == player and board[1] == player and board[2] == player) or
+    (board[3] == player and board[4] == player and board[5] == player) or
+    (board[6] == player and board[7] == player and board[8] == player) or
+    (board[0] == player and board[3] == player and board[6] == player) or
+    (board[1] == player and board[4] == player and board[7] == player) or
+    (board[2] == player and board[5] == player and board[8] == player) or
+    (board[0] == player and board[4] == player and board[8] == player) or
+    (board[2] == player and board[4] == player and board[6] == player)
+    ):
+      return True
+  else :
+      return False
 
+def minimax(board,player):
+    global best_move
+    avail_spots=empty_indeces(board)
+
+    if(winning(board,player_symbol)):
+        return -10
+    elif(winning(board,ai_symbol)):
+        return 10
+    elif(len(avail_spots) == 0):
+        return 0
+
+    move_win=[]
+    moves=[]
+    for i in range(len(avail_spots)):
+        move={}
+        move['index']=board[avail_spots[i]]
+        board[avail_spots[i]] = player
+
+        if player == ai_symbol:
+            # board[avail_spots[i]]=player
+            result=minimax(board,player_symbol)
+            move['score']=result
+        else:
+            result=minimax(board,ai_symbol)
+            move['score'] = result
+        move_win.append(avail_spots[i])
+        board[avail_spots[i]] = move['index']
+        moves.append(move['score'])
+
+
+        if(player == ai_symbol):
+            best_score=-10000
+            for i in range(len(moves)):
+                if(moves[i] > best_score):
+                    best_score=moves[i]
+                    best_move=i
+
+
+        else:
+            best_score=10000
+            for i in range(len(moves)):
+                if(moves[i]<best_score):
+                    best_score=moves[i]
+                    best_move=i
+
+    return move_win[best_move]
 
 
 # Точка входа
