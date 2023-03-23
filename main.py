@@ -304,14 +304,48 @@ def callbackInline(call):
         for i in range(9):
             board[i] = types.InlineKeyboardButton(ground[i], callback_data=str(i))
 
-        # # Ход бота (рандомный)
-        # random_go()
-
-        # Ход АИ
-        best_spot=minimax(ground,ai_symbol)
-        for i in range(9):
+        # Xol АИ
+        #Проверки :)
+        if(ground[4] == player_symbol and ground[0] == " " and ground[5] == " "):
+           ground[0] = ai_symbol
+        elif(ground[2]==player_symbol and ground[1] == " " and ground[4] == " " and ground[5] == " "):
+            ground[4]=ai_symbol
+        elif (ground[3] == player_symbol and ground[4] == player_symbol and ground[5] == " "):
+            ground[5] = ai_symbol
+        # elif (ground[6] == player_symbol or ground[8]== player_symbol and ground[4] == " " and ground[7] == player_symbol):
+        #     ground[4] = ai_symbol
+        elif(ground[4]==player_symbol and ground[8]==player_symbol and ground[0]==" " and ground[8] == " "):
+            ground[0]=ai_symbol
+        elif(ground[6] == " " and ground[7]==player_symbol and ground[8]==player_symbol):
+            ground[6]=ai_symbol
+        elif(ground[6]==player_symbol and ground[7] == player_symbol and ground[8]==" "):
+            ground[8]=ai_symbol
+        elif (ground[8] == player_symbol and ground[7] == player_symbol and ground[6] == " "):
+            ground[6] = ai_symbol
+        elif(ground[1] == player_symbol and ground[4]==player_symbol and ground[7] == " "):
+            ground[7]=ai_symbol
+        elif(ground[0] == player_symbol and ground[4] == " "):
+            ground[4]=ai_symbol
+        elif (ground[2] == player_symbol and ground[4] == player_symbol and ground[6] == " " and ground[5] == " "):
+            ground[6] = ai_symbol
+        elif (ground[2] == player_symbol and ground[5] == player_symbol and ground[8] == " "):
+            ground[8] = ai_symbol
+        elif (ground[0] == player_symbol and ground[3] == player_symbol and ground[6] == " "):
+            ground[6] = ai_symbol
+        elif (ground[4] == player_symbol and ground[5] == player_symbol and ground[3] == " "):
+            ground[3] = ai_symbol
+        elif(ground[7]==player_symbol and ground[0]==" " and ground[1]==" " and ground[2]==" " and ground[3]==" " and ground[4]==" " and ground[5]==" " and ground[6]==" " and ground[8]==" "):
+            ground[4]=ai_symbol
+        elif (ground[6] == player_symbol and ground[0] == " " and ground[1] == " " and ground[2] == " " and ground[3] == " " and ground[4] == " " and ground[5] == " " and ground[7] == " " and ground[8] == " "):
+            ground[4] = ai_symbol
+        #:)
+        else:
+         best_spot=minimax(ground,ai_symbol)
+         for i in range(9):
             if(best_spot == i):
-                ground[i] = ai_symbol
+                if(ground[i] == " "):
+                    ground[i] = ai_symbol
+
         # Добавление новой кнопки
         for i in range(9):
             board[i] = types.InlineKeyboardButton(ground[i], callback_data=str(i))
@@ -402,7 +436,6 @@ def winning(board, player):
 def minimax(board,player):
     global best_move
     avail_spots=empty_indeces(board)
-
     if(winning(board,player_symbol)):
         return -10
     elif(winning(board,ai_symbol)):
@@ -424,6 +457,7 @@ def minimax(board,player):
         else:
             result=minimax(board,ai_symbol)
             move['score'] = result
+
         move_win.append(avail_spots[i])
         board[avail_spots[i]] = move['index']
         moves.append(move['score'])
@@ -446,7 +480,8 @@ def minimax(board,player):
 
     return move_win[best_move]
 
-
+class Move:
+    pass
 # Точка входа
 def main():
     bot.polling()
